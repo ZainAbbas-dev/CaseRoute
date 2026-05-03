@@ -19,7 +19,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       // Note: Make sure to change this to your API_BASE_URL before pushing to Vercel
-      const response = await axios.post("http://localhost:5000/api/auth/login", {
+      const response = await axios.post("https://caseroute-backend.onrender.com/api/auth/login", {
         email,
         password,
       });

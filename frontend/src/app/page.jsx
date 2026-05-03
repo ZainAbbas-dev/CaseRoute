@@ -18,7 +18,7 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      const response = await axios.post("http://localhost:5000/api/auth/login", {
+      const response = await axios.post("https://caseroute-backend.onrender.com/api/auth/login", {
         email,
         password,
       });
