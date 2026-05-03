@@ -1,0 +1,76 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  USER
+  LAWYER
+  ADMIN
+}
+
+model User {
+  id            Int            @id @default(autoincrement())
+  name          String
+  email         String         @unique
+  password      String
+  role          Role           @default(USER)
+  clientCases   Case[]         @relation("ClientCases")
+  lawyerCases   Case[]         @relation("LawyerCases")
+  lawyerProfile LawyerProfile? 
+  messages      Message[]      
+  createdAt     DateTime       @default(now())
+}
+
+model LawyerProfile {
+  id             Int     @id @default(autoincrement())
+  specialization String
+  experience     Int     
+  location       String  @default("Islamabad")
+  rating         Float   @default(5.0) 
+  profileImage   String? @db.Text
+  userId         Int     @unique
+  user           User    @relation(fields: [userId], references: [id])
+}
+
+model Case {
+  id          Int       @id @default(autoincrement())
+  title       String
+  description String
+  status      String    @default("PENDING")
+  category    String?  
+  urgency     String?  
+  userId      Int
+  user        User      @relation("ClientCases", fields: [userId], references: [id])
+  lawyerId    Int?
+  lawyer      User?     @relation("LawyerCases", fields: [lawyerId], references: [id])
+  messages    Message[] 
+  documents   Document[]
+  createdAt   DateTime  @default(now())
+}
+
+model Message {
+  id        Int      @id @default(autoincrement())
+  text      String
+  senderId  Int
+  sender    User     @relation(fields: [senderId], references: [id])
+  caseId    Int
+  case      Case     @relation(fields: [caseId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model Document {
+  id        Int      @id @default(autoincrement())
+  fileName  String
+  fileType  String
+  fileData  String   @db.Text // We will store Base64 for simplicity, or a file path
+  
+  caseId    Int
+  case      Case     @relation(fields: [caseId], references: [id])
+  
+  uploadedBy Int     // User ID of the uploader
+  createdAt  DateTime @default(now())
+}
