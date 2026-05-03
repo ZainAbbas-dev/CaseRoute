@@ -47,6 +47,7 @@ The platform bridges the gap between clients and legal professionals through thr
 
 | Feature | Description |
 |---|---|
+| 🔐 **Role-Based Registration** | Users can seamlessly sign up as Clients, Lawyers, or Admins, with secure Bcrypt hashing and automatic redirection to customized dashboards. |
 | ⚖️ **Smart Case Submission** | Simulated AI logic analyzes case descriptions and automatically assigns legal categories and urgency flags. |
 | 🛡️ **Secure Document Vault** | High-capacity evidence hub for uploading (up to 50MB Base64), viewing, and deleting sensitive legal documents. |
 | 🔄 **Algorithmic Matchmaking** | Dynamic ranking of lawyer profiles based on specialization, experience, and current case load. |
@@ -81,7 +82,7 @@ CaseRoute follows a decoupled **Client-Server** architecture optimized for real-
 - **Frontend (Next.js):** Handles role-based UI rendering, file uploads to the vault, and the dynamic case timeline via Tailwind CSS.
 - **Backend (Express):** Performs request validation, orchestrates the matchmaking algorithm, and manages WebSocket connections.
 - **AI Layer (Mock Service):** Utilizes asynchronous delays and structured JSON stubs to simulate external AI processing without API overhead.
-- **Database (PostgreSQL):** Stores user metadata, raw case details, and manages relational data through Prisma ORM.
+- **Database (PostgreSQL via Neon):** Stores user metadata, raw case details, and manages relational data through Prisma ORM.
 
 ---
 
@@ -95,6 +96,7 @@ CaseRoute follows a decoupled **Client-Server** architecture optimized for real-
 | **Database** | PostgreSQL, Prisma ORM |
 | **State Management** | Zustand |
 | **Icons** | Lucide-React |
+| **Deployment** | Vercel (Frontend), Render (Backend) |
 
 ---
 
@@ -196,6 +198,7 @@ The application will be live at **http://localhost:3000**.
 
 | Method | Endpoint | Description |
 |---|---|---|
+|`POST` |	`/api/auth/register` |	Creates a new account, hashes the password, and assigns a user role |
 | `POST` | `/api/auth/login` | Authenticates a user and returns a JWT with role information |
 | `POST` | `/api/cases` | Submits a new case and triggers the simulated AI structuring pipeline |
 | `GET` | `/api/cases/:id/documents` | Fetches all secure vault documents for a specific case |
@@ -208,6 +211,7 @@ The application will be live at **http://localhost:3000**.
 
 | Screen | Preview |
 |---|---|
+| Sign Up Screen | ![Sign Up Screen](./screenshots/signup.png) |
 | Login Screen | ![Login Screen](./screenshots/login.png) |
 | Client Dashboard | ![Client Dashboard](./screenshots/client-dashboard.png) |
 | New Case Submission | ![New Case Submission](./screenshots/new-case.png) |
