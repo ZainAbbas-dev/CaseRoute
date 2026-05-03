@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import useAuthStore from "@/store/useAuthStore";
 import axios from "axios";
 import { Lock, Mail, Loader2, Scale } from "lucide-react";
+import Link from 'next/link';
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -26,13 +27,11 @@ export default function LoginPage() {
       
       const userRole = response.data.user.role;
 
-      // FIX: Explicit role-based redirection
       if (userRole === "ADMIN") {
         router.push("/dashboard/admin");
       } else if (userRole === "LAWYER") {
         router.push("/dashboard/lawyer");
       } else {
-        // Only actual clients (USER role) go here now
         router.push("/dashboard/user");
       }
 
@@ -47,7 +46,6 @@ export default function LoginPage() {
     <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
       <div className="max-w-md w-full bg-white rounded-3xl shadow-xl p-10 border border-slate-100">
         
-        {/* Branding/Logo */}
         <div className="flex flex-col items-center mb-10">
           <div className="p-4 bg-blue-600 rounded-2xl text-white mb-4 shadow-lg shadow-blue-200">
             <Scale size={32} />
@@ -65,7 +63,7 @@ export default function LoginPage() {
                 type="email"
                 required
                 className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-                placeholder="ali@example.com"
+                placeholder="sarmad@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
@@ -96,6 +94,19 @@ export default function LoginPage() {
             {loading ? "Verifying..." : "Sign In"}
           </button>
         </form>
+
+        {/* --- THIS IS THE SIGN UP LINK --- */}
+        <div className="mt-6 pt-6 border-t border-slate-100 text-center">
+          <p className="text-sm font-medium text-slate-500">
+            Don't have an account?{" "}
+            <Link 
+              href="/signup" 
+              className="text-blue-600 font-bold hover:text-blue-700 hover:underline transition-all"
+            >
+              Sign Up
+            </Link>
+          </p>
+        </div>
 
       </div>
     </div>

@@ -1,7 +1,7 @@
 "use client";
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { API_BASE_URL } from '@/utils/api'; // Ensure this points to your Render URL via env vars
+// Removed the missing API_BASE_URL import
 
 export default function Signup() {
   const [formData, setFormData] = useState({
@@ -22,7 +22,8 @@ export default function Signup() {
     setLoading(true);
 
     try {
-      const res = await fetch(`${API_BASE_URL}/api/auth/register`, {
+      // Hardcoded to match your local backend exactly like your Login page
+      const res = await fetch(`http://localhost:5000/api/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
@@ -33,15 +34,14 @@ export default function Signup() {
       if (res.ok) {
         alert("Registration Successful!");
         
-        // Logical Redirection based on your requirements
         const userRole = formData.role.toUpperCase();
         
         if (userRole === 'ADMIN') {
-          router.push('/admin/dashboard');
+          router.push('/dashboard/admin');
         } else if (userRole === 'LAWYER') {
-          router.push('/lawyer/dashboard');
+          router.push('/dashboard/lawyer');
         } else {
-          router.push('/client/dashboard');
+          router.push('/dashboard/user');
         }
       } else {
         alert(data.error || "Registration failed");
@@ -55,25 +55,38 @@ export default function Signup() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen">
-      <form onSubmit={handleSubmit} className="p-8 bg-white shadow-md rounded-lg flex flex-col gap-4">
-        <h2 className="text-2xl font-bold text-center">Create Account</h2>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-slate-50">
+      <form onSubmit={handleSubmit} className="p-8 bg-white shadow-xl rounded-3xl flex flex-col gap-4 max-w-md w-full border border-slate-100">
+        <h2 className="text-2xl font-black text-center text-slate-800 mb-4">Create Account</h2>
         
-        <input name="name" placeholder="Full Name" onChange={handleChange} required className="border p-2 rounded" />
-        <input name="email" type="email" placeholder="Email" onChange={handleChange} required className="border p-2 rounded" />
-        <input name="password" type="password" placeholder="Password" onChange={handleChange} required className="border p-2 rounded" />
+        <div className="space-y-1">
+          <label className="text-xs font-black text-slate-500 uppercase ml-1">Full Name</label>
+          <input name="name" placeholder="Ali Khan" onChange={handleChange} required className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500" />
+        </div>
+
+        <div className="space-y-1">
+          <label className="text-xs font-black text-slate-500 uppercase ml-1">Email Address</label>
+          <input name="email" type="email" placeholder="ali@example.com" onChange={handleChange} required className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500" />
+        </div>
+
+        <div className="space-y-1">
+          <label className="text-xs font-black text-slate-500 uppercase ml-1">Password</label>
+          <input name="password" type="password" placeholder="••••••••" onChange={handleChange} required className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500" />
+        </div>
         
-        <label className="font-semibold">Select Role:</label>
-        <select name="role" onChange={handleChange} className="border p-2 rounded">
-          <option value="USER">Client / User</option>
-          <option value="LAWYER">Lawyer</option>
-          <option value="ADMIN">Admin</option>
-        </select>
+        <div className="space-y-1">
+          <label className="text-xs font-black text-slate-500 uppercase ml-1">Select Role</label>
+          <select name="role" onChange={handleChange} className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 appearance-none cursor-pointer">
+            <option value="USER">Client / User</option>
+            <option value="LAWYER">Lawyer</option>
+            <option value="ADMIN">Admin</option>
+          </select>
+        </div>
 
         <button 
           type="submit" 
           disabled={loading}
-          className="bg-blue-600 text-white p-2 rounded hover:bg-blue-700 transition"
+          className="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold hover:bg-slate-800 transition-all shadow-lg mt-4 disabled:opacity-70"
         >
           {loading ? "Registering..." : "Sign Up"}
         </button>
