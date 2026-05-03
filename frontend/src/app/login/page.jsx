@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import useAuthStore from "@/store/useAuthStore";
 import axios from "axios";
 import { Lock, Mail, Loader2, Scale } from "lucide-react";
+import Link from 'next/link';
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -17,6 +18,7 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     try {
+      // Note: Make sure to change this to your API_BASE_URL before pushing to Vercel
       const response = await axios.post("http://localhost:5000/api/auth/login", {
         email,
         password,
@@ -26,7 +28,7 @@ export default function LoginPage() {
       
       const userRole = response.data.user.role;
 
-      // FIX: Explicit role-based redirection
+      // Explicit role-based redirection
       if (userRole === "ADMIN") {
         router.push("/dashboard/admin");
       } else if (userRole === "LAWYER") {
@@ -96,6 +98,17 @@ export default function LoginPage() {
             {loading ? "Verifying..." : "Sign In"}
           </button>
         </form>
+
+        {/* NEW SIGN UP LINK SECTION */}
+        <div className="mt-8 text-center text-sm font-medium text-slate-500">
+          Don't have an account?{" "}
+          <Link 
+            href="/signup" 
+            className="text-blue-600 hover:text-blue-800 font-bold hover:underline transition-all"
+          >
+            Sign Up here
+          </Link>
+        </div>
 
       </div>
     </div>

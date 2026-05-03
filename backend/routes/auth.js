@@ -1,30 +1,35 @@
 const express = require('express');
 const { PrismaClient } = require('@prisma/client');
+const { PrismaPg } = require('@prisma/adapter-pg'); 
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 const router = express.Router();
 
-const prisma = new PrismaClient();
+// 1. Initialize the adapter with your database URL (Restored)
+const adapter = new PrismaPg({ 
+  connectionString: process.env.DATABASE_URL 
+});
+
+// 2. Pass the adapter into the Prisma Client (Restored)
+const prisma = new PrismaClient({ adapter });
 
 // REGISTER ROUTE
 router.post('/register', async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
 
-    // 1. Check if user exists
+    // Check if user exists
     const existingUser = await prisma.user.findUnique({ 
       where: { email: email.toLowerCase() } 
     });
     if (existingUser) return res.status(400).json({ error: "User already exists" });
 
-    // 2. Hash the password
-    // Using bcryptjs to ensure compatibility across Vercel and Render
+    // Hash the password
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // 3. Save to database
-    // We force role to uppercase to match your logic: 'USER', 'LAWYER', 'ADMIN'
+    // Save to database with normalized role
     const newUser = await prisma.user.create({
       data: {
         name,
@@ -49,25 +54,23 @@ router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // 1. Find user (normalized email)
+    // Find user
     const user = await prisma.user.findUnique({ 
       where: { email: email.toLowerCase() } 
     });
     if (!user) return res.status(404).json({ error: "User not found" });
 
-    // 2. Check password
+    // Check password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ error: "Invalid credentials" });
 
-    // 3. Generate JWT Token
-    // Including the role in the token allows the frontend to decode it for routing
+    // Generate JWT Token
     const token = jwt.sign(
       { id: user.id, role: user.role }, 
       process.env.JWT_SECRET, 
       { expiresIn: '1d' }
     );
 
-    // 4. Send Response
     res.json({ 
       token, 
       user: { 
