@@ -2,12 +2,8 @@ const express = require('express');
 const router = express.Router();
 // Use the single instance we created in db.js to avoid 'undefined' errors
 const prisma = require('../db'); 
-const { OpenAI } = require('openai');
 
-// Initialize OpenAI
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+
 
 // POST: Create a new case with MOCK AI Structuring
 router.post('/', async (req, res) => {
