@@ -23,6 +23,8 @@ model User {
   lawyerProfile LawyerProfile? 
   messages      Message[]      
   createdAt     DateTime       @default(now())
+  strikes   Int      @default(0)
+  isVerified Boolean @default(false)
 }
 
 model LawyerProfile {
@@ -34,6 +36,8 @@ model LawyerProfile {
   profileImage   String? @db.Text
   userId         Int     @unique
   user           User    @relation(fields: [userId], references: [id])
+  reviewCount   Int     @default(0)
+  barIdImageUrl String? // To store the license photo path/base64
 }
 
 model Case {

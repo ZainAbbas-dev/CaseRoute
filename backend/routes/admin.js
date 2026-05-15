@@ -71,4 +71,40 @@ router.put('/cases/:id/reopen', async (req, res) => {
   }
 });
 
+// PUT: Issue a Strike to a Lawyer
+router.put('/lawyer/:id/strike', async (req, res) => {
+  try {
+    const lawyer = await prisma.user.update({
+      where: { id: parseInt(req.params.id) },
+      data: { strikes: { increment: 1 } }
+    });
+
+    // Auto-ban logic: if strikes reach 3, set account to inactive or banned
+    if (lawyer.strikes >= 3) {
+      await prisma.user.update({
+        where: { id: lawyer.id },
+        data: { isBanned: true }
+      });
+      return res.json({ message: "Lawyer reached 3 strikes and has been banned." });
+    }
+
+    res.json({ message: "Strike issued.", totalStrikes: lawyer.strikes });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to issue strike" });
+  }
+});
+
+// PUT: Verify Lawyer Documents
+router.put('/lawyer/:id/verify', async (req, res) => {
+  try {
+    await prisma.user.update({
+      where: { id: parseInt(req.params.id) },
+      data: { isVerified: true }
+    });
+    res.json({ message: "Lawyer verified successfully!" });
+  } catch (error) {
+    res.status(500).json({ error: "Verification failed" });
+  }
+});
+
 module.exports = router;

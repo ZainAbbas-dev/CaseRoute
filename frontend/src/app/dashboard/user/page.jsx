@@ -41,6 +41,19 @@ export default function UserDashboard() {
     router.push("/login");
   };
 
+  const handleRateLawyer = async (caseId, rating) => {
+  try {
+    await axios.post(`https://caseroute-backend.onrender.com/api/cases/${caseId}/rate`, { 
+      rating, 
+      lawyerId: selectedLawyerId 
+    });
+    alert("Thank you for your feedback!");
+    // Refresh UI
+  } catch (err) {
+    console.error("Rating failed");
+  }
+};
+
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-8">
       <div className="max-w-5xl mx-auto">
