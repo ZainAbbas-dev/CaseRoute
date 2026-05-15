@@ -75,7 +75,8 @@ export default function LawyerProfileEditor() {
     e.preventDefault();
     setLoading(true);
     try {
-      await axios.put(`https://caseroute-backend.onrender.com/api/admin/profile/${user.id}`, formData);
+      // Changed 'admin' to 'lawyer' to match your backend route structure
+      await axios.put(`https://caseroute-backend.onrender.com/api/lawyer/profile/${user.id}`, formData);
       alert("Professional profile updated successfully!");
       router.push("/dashboard/lawyer");
     } catch (err) {

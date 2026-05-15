@@ -66,6 +66,7 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/cases', require('./routes/cases'));
 app.use('/api/match', require('./routes/match'));
 app.use('/api/admin', require('./routes/admin'));
+app.use('/api/lawyer', require('./routes/lawyer')); 
 
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
