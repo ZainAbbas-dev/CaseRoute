@@ -228,7 +228,13 @@ export default function AdminDashboard() {
                     <td className="p-4 font-semibold text-slate-900">{lawyer.name}</td>
                     <td className="p-4 text-slate-500">{lawyer.lawyerProfile?.specialization || "Unset"}</td>
                     <td className="p-4 text-slate-500">{lawyer.lawyerProfile?.experience || 0} Years</td>
-                    <td className="p-4 font-bold text-slate-700">⭐ {lawyer.lawyerProfile?.rating || "5.0"}</td>
+                    <td className="p-4 font-bold text-slate-900">
+                      <div className="flex items-center gap-1">
+                        <span className="text-amber-500 text-lg">★</span>
+                        {lawyer.lawyerProfile?.rating?.toFixed(1) || "5.0"}
+                        <span className="text-[10px] text-slate-400 font-medium">({lawyer.lawyerProfile?.reviewCount || 0})</span>
+                      </div>
+                    </td>
                     <td className="p-4 text-right">
                       <span className="px-2 py-1 bg-green-100 text-green-700 rounded text-[10px] font-black uppercase tracking-tighter">Verified</span>
                     </td>
