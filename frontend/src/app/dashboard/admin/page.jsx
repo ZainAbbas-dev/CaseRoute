@@ -13,6 +13,7 @@ export default function AdminDashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [stalledCases, setStalledCases] = useState([]);
   const [isActionLoading, setIsActionLoading] = useState(false);
+  const [verificationQueue, setVerificationQueue] = useState([]);
 
   useEffect(() => {
     if (!user || user.role !== "ADMIN") {
@@ -38,6 +39,29 @@ export default function AdminDashboard() {
 
     fetchAdminData();
   }, [user, router]);
+
+  // useEffect for Verification Queue
+  useEffect(() => {
+    const fetchQueue = async () => {
+      try {
+        const res = await axios.get("https://caseroute-backend.onrender.com/api/admin/verification-queue");
+        setVerificationQueue(res.data);
+      } catch (err) {
+        console.log("Error loading queue");
+      }
+    };
+    fetchQueue();
+  }, []);
+
+  const handleVerify = async (id) => {
+    try {
+      await axios.put(`https://caseroute-backend.onrender.com/api/admin/lawyer/${id}/verify`);
+      setVerificationQueue(prev => prev.filter(l => l.id !== id));
+      alert("Lawyer has been verified and added to the marketplace!");
+    } catch (err) {
+      alert("Verification failed.");
+    }
+  };
 
   const handleReopenCase = async (caseId) => {
     if (!confirm("Are you sure you want to remove this lawyer and return the case to the marketplace?")) return;
@@ -85,6 +109,64 @@ export default function AdminDashboard() {
           <StatCard icon={<ShieldAlert className="text-amber-600"/>} label="Pending" value={data?.stats.pendingCases} />
           <StatCard icon={<CheckCircle className="text-green-600"/>} label="Assigned" value={data?.stats.assignedCases} />
         </div>
+
+        {/* SECTION: VERIFICATION QUEUE */}
+        <section className="mb-12">
+          <div className="flex items-center gap-2 mb-6">
+            <div className="bg-blue-100 p-2 rounded-lg text-blue-600">
+              <CheckCircle size={20} />
+            </div>
+            <h2 className="text-xl font-bold text-slate-900">Verification Queue</h2>
+            <span className="bg-blue-600 text-white text-[10px] px-2 py-0.5 rounded-full font-black">
+              {verificationQueue.length} NEW
+            </span>
+          </div>
+
+          {verificationQueue.length === 0 ? (
+            <div className="bg-white p-8 rounded-2xl border border-slate-100 text-center text-slate-400 font-medium italic">
+              No lawyers currently waiting for verification.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {verificationQueue.map((lawyer) => (
+                <div key={lawyer.id} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
+                  <div className="p-6 flex-1">
+                    <div className="flex justify-between items-start mb-4">
+                      <div>
+                        <h3 className="text-lg font-black text-slate-900">{lawyer.name}</h3>
+                        <p className="text-xs text-slate-500 font-bold">{lawyer.email}</p>
+                      </div>
+                      <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-1 rounded font-black uppercase">
+                        {lawyer.lawyerProfile?.specialization || "General"}
+                      </span>
+                    </div>
+
+                    {/* Document Preview Placeholder */}
+                    <div className="bg-slate-50 border border-dashed border-slate-200 rounded-xl h-32 flex flex-center justify-center items-center mb-4">
+                      {lawyer.lawyerProfile?.barIdImageUrl ? (
+                        <img src={lawyer.lawyerProfile.barIdImageUrl} className="h-full w-full object-contain p-2" alt="Bar ID" />
+                      ) : (
+                        <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">No Document Image Provided</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="p-4 bg-slate-50 border-t border-slate-100 flex gap-2">
+                    <button 
+                      onClick={() => handleVerify(lawyer.id)}
+                      className="flex-1 bg-blue-600 text-white py-2 rounded-xl text-xs font-black hover:bg-blue-700 transition uppercase tracking-wider"
+                    >
+                      Approve & Verify
+                    </button>
+                    <button className="px-4 py-2 border border-red-100 text-red-600 rounded-xl text-xs font-bold hover:bg-red-50 transition">
+                      Reject
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
 
         {/* SECTION: STALLED CASES MONITOR */}
         <div className="mb-10">

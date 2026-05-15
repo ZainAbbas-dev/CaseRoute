@@ -107,4 +107,34 @@ router.put('/lawyer/:id/verify', async (req, res) => {
   }
 });
 
+// GET: Fetch lawyers waiting for verification
+router.get('/verification-queue', async (req, res) => {
+  try {
+    const queue = await prisma.user.findMany({
+      where: {
+        role: 'LAWYER',
+        isVerified: false,
+        // Only show those who have actually uploaded a profile/ID
+        lawyerProfile: { isNot: null } 
+      },
+      include: { lawyerProfile: true }
+    });
+    res.json(queue);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch verification queue" });
+  }
+});
+
+// PUT: Approve Lawyer (Verify)
+router.put('/lawyer/:id/verify', async (req, res) => {
+  try {
+    await prisma.user.update({
+      where: { id: parseInt(req.params.id) },
+      data: { isVerified: true }
+    });
+    res.json({ message: "Lawyer verified! They can now accept marketplace cases." });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to verify lawyer" });
+  }
+});
 module.exports = router;
