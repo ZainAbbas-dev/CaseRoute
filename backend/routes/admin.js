@@ -137,4 +137,33 @@ router.put('/lawyer/:id/verify', async (req, res) => {
     res.status(500).json({ error: "Failed to verify lawyer" });
   }
 });
+
+// PUT: Issue a Strike to a Lawyer
+router.put('/lawyer/:id/strike', async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // 1. Increment strike count
+    const lawyer = await prisma.user.update({
+      where: { id: parseInt(id) },
+      data: { strikes: { increment: 1 } }
+    });
+
+    let message = `Strike issued to ${lawyer.name}. Current strikes: ${lawyer.strikes}`;
+    
+    // 2. Auto-ban logic
+    if (lawyer.strikes >= 3) {
+      await prisma.user.update({
+        where: { id: parseInt(id) },
+        data: { isBanned: true }
+      });
+      message = `${lawyer.name} has reached 3 strikes and is now BANNED from the system.`;
+    }
+
+    res.json({ message, strikes: lawyer.strikes, isBanned: lawyer.strikes >= 3 });
+  } catch (error) {
+    res.status(500).json({ error: "Failed to issue strike" });
+  }
+});
+
 module.exports = router;

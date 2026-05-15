@@ -23,11 +23,9 @@ export default function AdminDashboard() {
 
     const fetchAdminData = async () => {
       try {
-        // 1. Fetch General Stats and Lawyer Registry
         const statsRes = await axios.get("https://caseroute-backend.onrender.com/api/admin/stats");
         setData(statsRes.data);
 
-        // 2. Fetch Stalled Cases (Assigned but no messages)
         const stalledRes = await axios.get("https://caseroute-backend.onrender.com/api/admin/stalled-cases");
         setStalledCases(stalledRes.data);
       } catch (err) {
@@ -40,7 +38,6 @@ export default function AdminDashboard() {
     fetchAdminData();
   }, [user, router]);
 
-  // useEffect for Verification Queue
   useEffect(() => {
     const fetchQueue = async () => {
       try {
@@ -63,13 +60,24 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleIssueStrike = async (id, name, currentStrikes) => {
+    if (!confirm(`Are you sure you want to issue a strike to ${name}? Current strikes: ${currentStrikes}. At 3 strikes, they will be banned.`)) return;
+
+    try {
+      const res = await axios.put(`https://caseroute-backend.onrender.com/api/admin/lawyer/${id}/strike`);
+      alert(res.data.message);
+      window.location.reload(); 
+    } catch (err) {
+      alert("Failed to issue strike.");
+    }
+  };
+
   const handleReopenCase = async (caseId) => {
     if (!confirm("Are you sure you want to remove this lawyer and return the case to the marketplace?")) return;
     
     setIsActionLoading(true);
     try {
       await axios.put(`https://caseroute-backend.onrender.com/api/admin/cases/${caseId}/reopen`);
-      // Update local state to remove the case from the stalled list
       setStalledCases((prev) => prev.filter((c) => c.id !== caseId));
       alert("Case has been successfully re-opened to the marketplace.");
     } catch (err) {
@@ -141,8 +149,7 @@ export default function AdminDashboard() {
                       </span>
                     </div>
 
-                    {/* Document Preview Placeholder */}
-                    <div className="bg-slate-50 border border-dashed border-slate-200 rounded-xl h-32 flex flex-center justify-center items-center mb-4">
+                    <div className="bg-slate-50 border border-dashed border-slate-200 rounded-xl h-32 flex justify-center items-center mb-4">
                       {lawyer.lawyerProfile?.barIdImageUrl ? (
                         <img src={lawyer.lawyerProfile.barIdImageUrl} className="h-full w-full object-contain p-2" alt="Bar ID" />
                       ) : (
@@ -216,27 +223,48 @@ export default function AdminDashboard() {
               <thead className="bg-gray-50 text-gray-400 text-xs uppercase font-bold">
                 <tr>
                   <th className="p-4">Name</th>
-                  <th className="p-4">Specialization</th>
-                  <th className="p-4">Experience</th>
                   <th className="p-4">Rating</th>
-                  <th className="p-4 text-right">Status</th>
+                  <th className="p-4">Strikes</th>
+                  <th className="p-4 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="text-sm text-gray-700">
+              <tbody className="text-sm text-slate-700">
                 {data?.lawyers.map((lawyer) => (
                   <tr key={lawyer.id} className="border-b border-gray-50 hover:bg-gray-50 transition">
                     <td className="p-4 font-semibold text-slate-900">{lawyer.name}</td>
-                    <td className="p-4 text-slate-500">{lawyer.lawyerProfile?.specialization || "Unset"}</td>
-                    <td className="p-4 text-slate-500">{lawyer.lawyerProfile?.experience || 0} Years</td>
-                    <td className="p-4 font-bold text-slate-900">
+                    <td className="p-4">
                       <div className="flex items-center gap-1">
                         <span className="text-amber-500 text-lg">★</span>
                         {lawyer.lawyerProfile?.rating?.toFixed(1) || "5.0"}
                         <span className="text-[10px] text-slate-400 font-medium">({lawyer.lawyerProfile?.reviewCount || 0})</span>
                       </div>
                     </td>
-                    <td className="p-4 text-right">
-                      <span className="px-2 py-1 bg-green-100 text-green-700 rounded text-[10px] font-black uppercase tracking-tighter">Verified</span>
+                    <td className="p-4">
+                      <div className="flex gap-1">
+                        {[1, 2, 3].map((s) => (
+                          <div 
+                            key={s} 
+                            className={`w-3 h-3 rounded-full ${s <= lawyer.strikes ? 'bg-red-600' : 'bg-slate-200'}`}
+                            title={`${lawyer.strikes} Strikes`}
+                          ></div>
+                        ))}
+                      </div>
+                    </td>
+                    <td className="p-4 text-right flex justify-end gap-2">
+                      {!lawyer.isBanned && (
+                        <button 
+                          onClick={() => handleIssueStrike(lawyer.id, lawyer.name, lawyer.strikes)}
+                          className="p-2 bg-amber-50 text-amber-600 rounded-lg hover:bg-amber-100 transition"
+                          title="Issue Warning/Strike"
+                        >
+                          <ShieldAlert size={18} />
+                        </button>
+                      )}
+                      <span className={`px-2 py-1 rounded text-[10px] font-black uppercase ${
+                        lawyer.isBanned ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-700'
+                      }`}>
+                        {lawyer.isBanned ? 'Banned' : 'Active'}
+                      </span>
                     </td>
                   </tr>
                 ))}
