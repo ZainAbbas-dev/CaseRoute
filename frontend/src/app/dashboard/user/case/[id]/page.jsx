@@ -5,47 +5,62 @@ import { useParams, useRouter } from "next/navigation";
 import useAuthStore from "@/store/useAuthStore";
 import axios from "axios";
 import { 
-  File, Upload, Download, Trash2, ArrowLeft, 
-  Shield, Loader2, CheckCircle2, Clock 
+  File, Upload, Trash2, ArrowLeft, 
+  Shield, Loader2, CheckCircle, Clock, Lock 
 } from "lucide-react";
 
-// NEW: Timeline Component for Visual Progress
-function CaseTimeline({ status, hasDocs }) {
+// Updated Timeline Component with Refined Logic
+function CaseTimeline({ status }) {
+  const isResolved = status === "RESOLVED";
+  
+  // 1. Refined steps to match the full legal case lifecycle
   const steps = [
-    { label: "Submitted", active: true },
-    { label: "Processing", active: true },
-    { label: "Lawyer Assigned", active: status === "ASSIGNED" },
-    { label: "Evidence Ready", active: hasDocs },
-    { label: "Active Chat", active: status === "ASSIGNED" }
+    { label: "SUBMITTED", status: "PENDING" },
+    { label: "PROCESSING", status: "PENDING" },
+    { label: "LAWYER ASSIGNED", status: "ASSIGNED" },
+    { label: "ACTIVE CHAT", status: "ASSIGNED" },
+    { label: "RESOLVED", status: "RESOLVED" },
   ];
 
-  const currentStepIndex = steps.reduce((acc, step, idx) => step.active ? idx : acc, 0);
+  // 2. Calculation for progress bar and active markers
+  const activeIndex = isResolved ? 5 : (status === "ASSIGNED" ? 3 : 1);
+  const progressWidth = (activeIndex / (steps.length - 1)) * 100;
 
   return (
-    <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 mb-6">
-      <div className="flex items-center justify-between relative">
+    <div className="bg-white p-8 rounded-2xl shadow-sm border border-slate-100 mb-6">
+      <div className="relative flex justify-between items-center">
+        
         {/* Background Line */}
-        <div className="absolute top-4 left-0 w-full h-0.5 bg-gray-100 z-0"></div>
-        {/* Progress Line */}
+        <div className="absolute top-1/2 left-0 w-full h-1 bg-slate-100 -translate-y-1/2 z-0"></div>
+        
+        {/* Progress Line (Blue) */}
         <div 
-          className="absolute top-4 left-0 h-0.5 bg-blue-600 z-0 transition-all duration-700"
-          style={{ width: `${(currentStepIndex / (steps.length - 1)) * 100}%` }}
+          className="absolute top-1/2 left-0 h-1 bg-blue-600 -translate-y-1/2 z-10 transition-all duration-1000"
+          style={{ width: `${Math.min(progressWidth, 100)}%` }}
         ></div>
 
-        {steps.map((step, index) => (
-          <div key={index} className="relative z-10 flex flex-col items-center">
-            <div className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors duration-500 ${
-              index <= currentStepIndex ? "bg-blue-600 text-white" : "bg-white text-gray-300 border-2 border-gray-100"
-            }`}>
-              {index < currentStepIndex ? <CheckCircle2 size={18} /> : <span className="text-xs font-bold">{index + 1}</span>}
+        {/* Timeline Steps */}
+        {steps.map((step, index) => {
+          // A step is completed if it's behind the active index or if the case is resolved
+          const isCompleted = isResolved || index < activeIndex;
+
+          return (
+            <div key={index} className="relative z-20 flex flex-col items-center gap-2">
+              <div className={`w-10 h-10 rounded-full flex items-center justify-center border-4 transition-colors ${
+                isCompleted 
+                  ? "bg-blue-600 border-blue-200 text-white" 
+                  : "bg-white border-slate-100 text-slate-300"
+              }`}>
+                {isCompleted ? <CheckCircle size={18} /> : <span className="text-xs font-bold">{index + 1}</span>}
+              </div>
+              <p className={`text-[10px] font-black tracking-tighter uppercase ${
+                isCompleted ? "text-blue-600" : "text-slate-300"
+              }`}>
+                {step.label}
+              </p>
             </div>
-            <span className={`text-[10px] mt-3 font-black uppercase tracking-tighter ${
-              index <= currentStepIndex ? "text-blue-600" : "text-gray-300"
-            }`}>
-              {step.label}
-            </span>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );
@@ -60,6 +75,8 @@ export default function CaseDetailsPage() {
   const [documents, setDocuments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
+
+  const isResolved = caseDetails?.status === "RESOLVED";
 
   useEffect(() => {
     if (!user) return router.push("/login");
@@ -83,6 +100,7 @@ export default function CaseDetailsPage() {
   }, [id, user, router]);
 
   const handleFileUpload = async (e) => {
+    if (isResolved) return;
     const file = e.target.files[0];
     if (!file) return;
 
@@ -99,7 +117,7 @@ export default function CaseDetailsPage() {
         const res = await axios.get(`https://caseroute-backend.onrender.com/api/cases/${id}/documents`);
         setDocuments(res.data);
       } catch (err) {
-        alert("Upload failed. Ensure backend limit is 50mb.");
+        alert("Upload failed.");
       } finally {
         setIsUploading(false);
       }
@@ -108,6 +126,7 @@ export default function CaseDetailsPage() {
   };
 
   const handleDelete = async (docId) => {
+    if (isResolved) return;
     if (!window.confirm("Remove this document?")) return;
     try {
       await axios.delete(`https://caseroute-backend.onrender.com/api/cases/documents/${docId}`);
@@ -128,14 +147,14 @@ export default function CaseDetailsPage() {
         </button>
 
         {/* PROGRESS TIMELINE */}
-        <CaseTimeline status={caseDetails?.status} hasDocs={documents.length > 0} />
+        <CaseTimeline status={caseDetails?.status} />
 
         {/* Case Header */}
         <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
           <div className="flex justify-between items-center mb-4">
             <h1 className="text-2xl font-black text-gray-900 tracking-tight">{caseDetails?.title}</h1>
             <div className="flex items-center gap-2 bg-slate-50 px-3 py-1 rounded-full border border-slate-100">
-              <Clock size={12} className="text-blue-500" />
+              <Clock size={12} className="text-blue-50" />
               <span className="text-[10px] font-bold text-slate-500 uppercase">Ref: {id}</span>
             </div>
           </div>
@@ -144,18 +163,36 @@ export default function CaseDetailsPage() {
 
         {/* SECURE DOCUMENT VAULT */}
         <div className="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden">
-          <div className="p-6 border-b border-gray-50 flex justify-between items-center bg-slate-900 text-white">
-            <div className="flex items-center gap-3">
-              <Shield className="text-blue-400" size={24} />
+          <div className="bg-slate-900 p-6 rounded-t-2xl flex justify-between items-center">
+            <div className="flex items-center gap-4">
+              <div className="bg-blue-600/20 p-3 rounded-xl">
+                <Shield size={24} className="text-blue-500" />
+              </div>
               <div>
-                <h2 className="text-lg font-black tracking-tight">Secure Document Vault</h2>
-                <p className="text-[10px] text-slate-500 uppercase font-bold">End-to-End Encrypted Storage</p>
+                <h3 className="text-white font-bold text-lg">Secure Document Vault</h3>
+                <p className="text-slate-400 text-xs font-medium uppercase tracking-widest">
+                  {isResolved ? "Archived - Read Only Access" : "End-to-End Encrypted Storage"}
+                </p>
               </div>
             </div>
-            <label className={`flex items-center gap-2 px-5 py-2.5 bg-blue-600 rounded-xl text-xs font-black uppercase tracking-widest cursor-pointer hover:bg-blue-500 transition shadow-lg shadow-blue-900/20 ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}>
-              {isUploading ? <Loader2 className="animate-spin" size={14} /> : <Upload size={14} />}
-              {isUploading ? "Uploading..." : "Add Evidence"}
-              <input type="file" className="hidden" onChange={handleFileUpload} disabled={isUploading} />
+
+            <label className={`flex items-center gap-2 px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest transition-all cursor-pointer ${
+              isResolved 
+                ? "bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700" 
+                : "bg-blue-600 text-white hover:bg-blue-700 active:scale-95 shadow-lg shadow-blue-900/20"
+            }`}>
+              {isResolved ? (
+                <>
+                  <Lock size={16} />
+                  File Locked
+                </>
+              ) : (
+                <>
+                  {isUploading ? <Loader2 className="animate-spin" size={16} /> : <Upload size={16} />}
+                  {isUploading ? "Uploading..." : "Add Evidence"}
+                  <input type="file" className="hidden" onChange={handleFileUpload} disabled={isUploading || isResolved} />
+                </>
+              )}
             </label>
           </div>
 
@@ -168,7 +205,7 @@ export default function CaseDetailsPage() {
             ) : (
               <div className="grid gap-3">
                 {documents.map((doc) => (
-                  <div key={doc.id} className="flex justify-between items-center p-5 bg-white rounded-2xl border border-gray-100 hover:border-blue-100 hover:shadow-md hover:shadow-blue-500/5 transition-all duration-300">
+                  <div key={doc.id} className="flex justify-between items-center p-5 bg-white rounded-2xl border border-gray-100 hover:border-blue-100 hover:shadow-md transition-all duration-300">
                     <div className="flex items-center gap-4">
                       <div className="p-3 bg-blue-50 rounded-xl">
                         <File className="text-blue-600" size={20} />
@@ -180,12 +217,14 @@ export default function CaseDetailsPage() {
                         </p>
                       </div>
                     </div>
-                    <button 
-                      onClick={() => handleDelete(doc.id)}
-                      className="p-3 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors"
-                    >
-                      <Trash2 size={18} />
-                    </button>
+                    {!isResolved && (
+                      <button 
+                        onClick={() => handleDelete(doc.id)}
+                        className="p-3 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-colors"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    )}
                   </div>
                 ))}
               </div>
