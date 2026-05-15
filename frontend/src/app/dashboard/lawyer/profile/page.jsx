@@ -72,20 +72,18 @@ export default function LawyerProfileEditor() {
 
   // 3. Save Updated Profile
   const handleSave = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    try {
-      // Changed 'admin' to 'lawyer' to match your backend route structure
-      await axios.put(`https://caseroute-backend.onrender.com/api/lawyer/profile/${user.id}`, formData);
-      alert("Professional profile updated successfully!");
-      router.push("/dashboard/lawyer");
-    } catch (err) {
-      console.error(err);
-      alert("Error updating profile. Check backend console.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  e.preventDefault();
+  setLoading(true);
+  try {
+    await axios.put(`https://caseroute-backend.onrender.com/api/lawyer/profile/${user.id}`, formData);
+    alert("Profile Updated!");
+    router.push("/dashboard/lawyer");
+  } catch (err) {
+    alert("Save failed. Check console.");
+  } finally {
+    setLoading(false);
+  }
+};
 
   if (fetching) return <div className="min-h-screen flex items-center justify-center">Loading Profile Data...</div>;
 
