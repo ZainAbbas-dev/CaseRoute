@@ -8,7 +8,7 @@ import Link from "next/link";
 import { MessageSquare, Briefcase, Gavel, Scale, Loader2, ShieldAlert } from "lucide-react";
 
 export default function LawyerDashboard() {
-  const { user, logout } = useAuthStore();
+  const { user, logout, setUser } = useAuthStore();
   const router = useRouter();
 
   const [pendingCases, setPendingCases] = useState([]);
@@ -52,6 +52,23 @@ export default function LawyerDashboard() {
 
     fetchData();
   }, [user, router]);
+
+  // Real-time verification status check
+  useEffect(() => {
+    const checkRealTimeStatus = async () => {
+      try {
+        const res = await axios.get(`https://caseroute-backend.onrender.com/api/lawyer/profile/${user.id}`);
+        // If the backend says verified but our store says no, update the store
+        if (res.data.user.isVerified !== user.isVerified) {
+          setUser({ ...user, isVerified: res.data.user.isVerified });
+        }
+      } catch (err) {
+        console.error("Status check failed");
+      }
+    };
+
+    if (user) checkRealTimeStatus();
+  }, [user, setUser]);
 
   const handleAcceptCase = async (caseId) => {
     if (!user.isVerified) return;
