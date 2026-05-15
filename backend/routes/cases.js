@@ -168,4 +168,41 @@ router.delete('/documents/:docId', async (req, res) => {
   }
 });
 
+// POST: Resolve and Rate a Case
+router.post('/:caseId/resolve', async (req, res) => {
+  try {
+    const { caseId } = req.params;
+    const { rating, lawyerId } = req.body; // rating is 1-5
+
+    // 1. Update Case Status to RESOLVED
+    await prisma.case.update({
+      where: { id: parseInt(caseId) },
+      data: { status: 'RESOLVED' }
+    });
+
+    // 2. Update Lawyer's Average Rating
+    const lawyerProfile = await prisma.lawyerProfile.findUnique({
+      where: { userId: parseInt(lawyerId) }
+    });
+
+    const newReviewCount = (lawyerProfile.reviewCount || 0) + 1;
+    const currentRating = lawyerProfile.rating || 5.0;
+    
+    // Weighted Average Calculation
+    const newRating = ((currentRating * (newReviewCount - 1)) + rating) / newReviewCount;
+
+    await prisma.lawyerProfile.update({
+      where: { userId: parseInt(lawyerId) },
+      data: {
+        rating: newRating,
+        reviewCount: newReviewCount
+      }
+    });
+
+    res.json({ message: "Case resolved and lawyer rated successfully!" });
+  } catch (error) {
+    console.error("Resolution error:", error);
+    res.status(500).json({ error: "Failed to resolve case" });
+  }
+});
 module.exports = router;
