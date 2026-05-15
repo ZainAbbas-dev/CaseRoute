@@ -50,39 +50,41 @@ router.post('/register', async (req, res) => {
 });
 
 // LOGIN ROUTE
+// Inside your login route (POST /api/auth/login)
 router.post('/login', async (req, res) => {
-  try {
-    const { email, password } = req.body;
+  const { email, password } = req.body;
 
-    // Find user
-    const user = await prisma.user.findUnique({ 
-      where: { email: email.toLowerCase() } 
+  try {
+    const user = await prisma.user.findUnique({
+      where: { email },
     });
+
     if (!user) return res.status(404).json({ error: "User not found" });
 
-    // Check password
     const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ error: "Invalid credentials" });
+    if (!isMatch) return res.status(401).json({ error: "Invalid credentials" });
 
-    // Generate JWT Token
+    // Generate Token
     const token = jwt.sign(
       { id: user.id, role: user.role }, 
       process.env.JWT_SECRET, 
       { expiresIn: '1d' }
     );
 
-    res.json({ 
-      token, 
-      user: { 
-        id: user.id, 
-        name: user.name, 
-        email: user.email, 
-        role: user.role 
-      } 
+    // EXPLICITLY include the new fields in the response
+    res.json({
+      token,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        isVerified: user.isVerified, // CRITICAL: This enables the frontend check
+        strikes: user.strikes        // Optional: Good for showing warnings
+      }
     });
   } catch (error) {
-    console.error("Login Error:", error);
-    res.status(500).json({ error: "Server error during login" });
+    res.status(500).json({ error: "Server error" });
   }
 });
 
