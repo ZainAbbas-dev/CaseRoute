@@ -62,7 +62,7 @@ export default function LoginPage() {
               <input
                 type="email"
                 required
-                className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 transition-all text-slate-900"
                 placeholder="sarmad@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -77,7 +77,7 @@ export default function LoginPage() {
               <input
                 type="password"
                 required
-                className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 transition-all text-slate-900"
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -97,7 +97,7 @@ export default function LoginPage() {
 
         {/* --- THIS IS THE SIGN UP LINK --- */}
         <div className="mt-6 pt-6 border-t border-slate-100 text-center">
-          <p className="text-sm font-medium text-slate-500">
+          <p className="text-sm font-medium text-slate-800">
             Don't have an account?{" "}
             <Link 
               href="/signup" 
