@@ -97,7 +97,7 @@ export default function LoginPage() {
 
         {/* --- THIS IS THE SIGN UP LINK --- */}
         <div className="mt-6 pt-6 border-t border-slate-100 text-center">
-          <p className="text-sm font-medium text-slate-800">
+          <p className="text-sm font-medium text-slate-900">
             Don't have an account?{" "}
             <Link 
               href="/signup" 
