@@ -54,6 +54,7 @@ export default function Signup() {
         
         <div className="space-y-1">
           <label className="text-xs font-black text-slate-500 uppercase ml-1">Full Name</label>
+          {/* Added text-slate-900 below */}
           <input name="name" placeholder="Ali Khan" onChange={handleChange} required 
             className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 text-slate-900" />
         </div>
@@ -76,7 +77,6 @@ export default function Signup() {
             className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 text-slate-900 cursor-pointer">
             <option value="USER">Client / User</option>
             <option value="LAWYER">Lawyer</option>
-            {/* Admin removed from public signup */}
           </select>
         </div>
 
