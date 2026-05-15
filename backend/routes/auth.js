@@ -16,33 +16,33 @@ const prisma = new PrismaClient({ adapter });
 
 // REGISTER ROUTE
 router.post('/register', async (req, res) => {
+  const { name, email, password, role } = req.body;
+
   try {
-    const { name, email, password, role } = req.body;
-
-    // Check if user exists
-    const existingUser = await prisma.user.findUnique({ 
-      where: { email: email.toLowerCase() } 
-    });
-    if (existingUser) return res.status(400).json({ error: "User already exists" });
-
-    // Hash the password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
-    // Save to database with normalized role
-    const newUser = await prisma.user.create({
+    const hashedPassword = await bcrypt.hash(password, 10);
+    
+    const user = await prisma.user.create({
       data: {
         name,
-        email: email.toLowerCase(),
+        email,
         password: hashedPassword,
-        role: role ? role.toUpperCase() : 'USER', 
+        role: role || 'USER', // Ensure this matches your Prisma Enum
+        isVerified: role === 'ADMIN' ? true : false, // Admins auto-verified
       },
     });
 
-    res.status(201).json({ 
-      message: "User registered successfully!", 
-      user: { id: newUser.id, role: newUser.role } 
-    });
+    // CRITICAL: If the user is a lawyer, create the profile immediately
+    if (role === 'LAWYER') {
+      await prisma.lawyerProfile.create({
+        data: {
+          userId: user.id,
+          specialization: "General", // Default value to prevent 500 error
+          experience: 0,
+        }
+      });
+    }
+
+    res.json({ message: "Registration successful!", user });
   } catch (error) {
     console.error("Registration Error:", error);
     res.status(500).json({ error: "Server error during registration" });
