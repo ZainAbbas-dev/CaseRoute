@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import Link from "next/link";
-import { MessageSquare, Briefcase, Gavel, Scale, Loader2 } from "lucide-react";
+import { MessageSquare, Briefcase, Gavel, Scale, Loader2, ShieldAlert } from "lucide-react";
 
 export default function LawyerDashboard() {
   const { user, logout } = useAuthStore();
@@ -36,7 +36,7 @@ export default function LawyerDashboard() {
         );
         setActiveCases(activeRes.data);
 
-        // 3. FIX: Fetch Profile DIRECTLY for the Navbar
+        // 3. Fetch Profile DIRECTLY for the Navbar
         const profileRes = await axios.get(
           `https://caseroute-backend.onrender.com/api/lawyer/profile/${user.id}`,
         );
@@ -54,6 +54,7 @@ export default function LawyerDashboard() {
   }, [user, router]);
 
   const handleAcceptCase = async (caseId) => {
+    if (!user.isVerified) return;
     try {
       await axios.put(
         `https://caseroute-backend.onrender.com/api/cases/${caseId}/assign`,
@@ -72,7 +73,7 @@ export default function LawyerDashboard() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      {/* --- REFRESHED NAVBAR --- */}
+      {/* --- NAVBAR --- */}
       <nav className="bg-white border-b border-slate-200 px-6 py-4 flex justify-between items-center sticky top-0 z-50">
         <div className="flex items-center gap-3">
           <div className="bg-slate-900 p-2 rounded-lg text-white">
@@ -94,7 +95,6 @@ export default function LawyerDashboard() {
             Logout
           </button>
 
-          {/* --- NAVBAR PROFILE PHOTO (CLICKS TO SETTINGS) --- */}
           <Link href="/dashboard/lawyer/profile">
             <div className="relative group cursor-pointer">
               <img
@@ -123,7 +123,25 @@ export default function LawyerDashboard() {
           </p>
         </div>
 
-        {/* SECTION 1: ACTIVE CASES */}
+        {/* 1. VERIFICATION ALERT BANNER */}
+        {!user.isVerified && (
+          <div className="mb-8 bg-blue-50 border border-blue-200 p-6 rounded-2xl flex items-start gap-4">
+            <div className="bg-blue-600 p-2 rounded-lg text-white">
+              <ShieldAlert size={20} />
+            </div>
+            <div>
+              <h3 className="text-slate-900 font-black uppercase text-xs tracking-widest">
+                Account Under Review
+              </h3>
+              <p className="text-slate-600 text-sm mt-1 leading-relaxed">
+                Your professional credentials have been submitted. You will be able to accept cases from the 
+                marketplace once the <strong>Admin</strong> verifies your ID. Usually takes 24-48 hours.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* 2. ACTIVE CASES SECTION */}
         <section className="mb-12">
           <div className="flex items-center gap-2 mb-6">
             <Briefcase className="text-blue-600" />
@@ -167,16 +185,27 @@ export default function LawyerDashboard() {
           )}
         </section>
 
-        {/* SECTION 2: MARKETPLACE */}
-        <section>
-          <div className="flex items-center gap-2 mb-6">
-            <Gavel className="text-amber-500" />
-            <h2 className="text-xl font-bold text-slate-800">
-              Case Marketplace
-            </h2>
+        {/* 3. RESTRICTED MARKETPLACE SECTION */}
+        <section className={!user.isVerified ? "opacity-60 pointer-events-none grayscale" : ""}>
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-2">
+              <Gavel className="text-amber-500" />
+              <h2 className="text-xl font-bold text-slate-800">
+                Case Marketplace
+              </h2>
+            </div>
+            {!user.isVerified && (
+              <span className="text-[10px] font-black text-blue-600 bg-blue-100 px-3 py-1 rounded-full uppercase">
+                Locked
+              </span>
+            )}
           </div>
 
-          {!isLoading && pendingCases.length === 0 ? (
+          {isLoading ? (
+            <div className="flex justify-center p-12">
+              <Loader2 className="animate-spin text-slate-300" size={40} />
+            </div>
+          ) : pendingCases.length === 0 ? (
             <p className="text-slate-400 font-medium bg-white p-6 rounded-2xl border border-slate-100 text-center">
               No new cases available at the moment.
             </p>
@@ -207,10 +236,15 @@ export default function LawyerDashboard() {
                     </p>
                   </div>
                   <button
+                    disabled={!user.isVerified}
                     onClick={() => handleAcceptCase(c.id)}
-                    className="w-full bg-slate-900 text-white py-3 rounded-xl font-bold hover:bg-slate-800 transition shadow-lg shadow-slate-200"
+                    className={`w-full py-3 rounded-xl font-bold transition shadow-lg ${
+                      user.isVerified 
+                      ? "bg-slate-900 text-white hover:bg-slate-800 shadow-slate-200" 
+                      : "bg-slate-200 text-slate-400 cursor-not-allowed"
+                    }`}
                   >
-                    Accept Case
+                    {user.isVerified ? "Accept Case" : "Verification Required"}
                   </button>
                 </div>
               ))}
