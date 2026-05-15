@@ -24,7 +24,7 @@ export default function LawyerDashboard() {
       try {
         // 1. Fetch Open Marketplace Cases
         const pendingRes = await axios.get(
-          "http://localhost:5000/api/cases/pending",
+          "https://caseroute-backend.onrender.com/api/cases/pending",
         );
         setPendingCases(pendingRes.data);
 
@@ -32,12 +32,12 @@ export default function LawyerDashboard() {
         // Note: We'll reuse the user endpoint but filter by lawyerId on the backend
         // or just fetch all cases and filter here for now.
         const allRes = await axios.get(
-          `http://localhost:5000/api/cases/pending`,
+          "https://caseroute-backend.onrender.com/api/cases/pending",
         );
         // Better: Fetch specifically for this lawyer.
         // For now, let's assume we fetch assigned cases from a new endpoint:
         const activeRes = await axios.get(
-          `http://localhost:5000/api/cases/single/lawyer/${user.id}`,
+          `https://caseroute-backend.onrender.com/api/cases/single/lawyer/${user.id}`,
         );
         setActiveCases(activeRes.data);
       } catch (error) {
@@ -52,7 +52,7 @@ export default function LawyerDashboard() {
 
   const handleAcceptCase = async (caseId) => {
     try {
-      await axios.put(`http://localhost:5000/api/cases/${caseId}/assign`, {
+      await axios.put(`https://caseroute-backend.onrender.com/api/cases/${caseId}/assign`, {
         lawyerId: user.id,
       });
       alert("Case accepted! It is now in your Active Cases.");

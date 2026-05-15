@@ -21,7 +21,7 @@ export default function UserDashboard() {
     const fetchCases = async () => {
       try {
         const response = await axios.get(
-          `http://localhost:5000/api/cases/user/${user.id}`,
+          `https://caseroute-backend.onrender.com/api/cases/user/${user.id}`,
         );
         setCases(response.data);
       } catch (error) {

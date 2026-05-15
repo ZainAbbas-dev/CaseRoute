@@ -27,15 +27,15 @@ export default function ChatPage() {
     }
 
     // 1. Initialize Socket Connection
-    socket = io("http://localhost:5000");
+    socket = io("https://caseroute-backend.onrender.com");
 
     // 2. Fetch History & Case Info
     const fetchData = async () => {
       try {
-        const caseRes = await axios.get(`http://localhost:5000/api/cases/single/${id}`);
+        const caseRes = await axios.get(`https://caseroute-backend.onrender.com/api/cases/single/${id}`);
         setCaseTitle(caseRes.data.title);
 
-        const msgRes = await axios.get(`http://localhost:5000/api/messages/${id}`);
+        const msgRes = await axios.get(`https://caseroute-backend.onrender.com/api/messages/${id}`);
         setMessages(msgRes.data);
       } catch (err) {
         console.error("Chat loading error:", err);

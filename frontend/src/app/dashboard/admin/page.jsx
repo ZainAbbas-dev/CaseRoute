@@ -20,7 +20,7 @@ export default function AdminDashboard() {
 
     const fetchAdminData = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/api/admin/stats");
+        const res = await axios.get("https://caseroute-backend.onrender.com/api/admin/stats");
         setData(res.data);
       } catch (err) {
         console.error("Admin Load Error:", err);

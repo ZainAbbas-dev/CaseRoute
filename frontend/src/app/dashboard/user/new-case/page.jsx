@@ -19,7 +19,7 @@ export default function NewCasePage() {
     setIsSubmitting(true);
 
     try {
-      await axios.post("http://localhost:5000/api/cases", {
+      await axios.post("https://caseroute-backend.onrender.com/api/cases", {
         title,
         description,
         userId: user.id

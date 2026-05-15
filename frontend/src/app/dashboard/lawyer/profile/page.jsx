@@ -30,7 +30,7 @@ export default function LawyerProfileEditor() {
     const fetchExistingProfile = async () => {
       try {
         // We reuse the single lawyer fetch endpoint we created earlier
-        const res = await axios.get(`http://localhost:5000/api/cases/single/lawyer/${user.id}`);
+        const res = await axios.get(`https://caseroute-backend.onrender.com/api/cases/single/lawyer/${user.id}`);
         if (res.data && res.data.length > 0) {
           // Assuming the first returned case has the profile info we need
           // Or better, fetch from a dedicated profile endpoint if you have one
@@ -75,7 +75,7 @@ export default function LawyerProfileEditor() {
     e.preventDefault();
     setLoading(true);
     try {
-      await axios.put(`http://localhost:5000/api/admin/profile/${user.id}`, formData);
+      await axios.put(`https://caseroute-backend.onrender.com/api/admin/profile/${user.id}`, formData);
       alert("Professional profile updated successfully!");
       router.push("/dashboard/lawyer");
     } catch (err) {

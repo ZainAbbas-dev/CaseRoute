@@ -67,8 +67,8 @@ export default function CaseDetailsPage() {
     const fetchCaseAndDocs = async () => {
       try {
         const [caseRes, docsRes] = await Promise.all([
-          axios.get(`http://localhost:5000/api/cases/single/${id}`),
-          axios.get(`http://localhost:5000/api/cases/${id}/documents`)
+          axios.get(`https://caseroute-backend.onrender.com/api/cases/single/${id}`),
+          axios.get(`https://caseroute-backend.onrender.com/api/cases/${id}/documents`)
         ]);
         setCaseDetails(caseRes.data);
         setDocuments(docsRes.data);
@@ -90,13 +90,13 @@ export default function CaseDetailsPage() {
     const reader = new FileReader();
     reader.onloadend = async () => {
       try {
-        await axios.post(`http://localhost:5000/api/cases/${id}/documents`, {
+        await axios.post(`https://caseroute-backend.onrender.com/api/cases/${id}/documents`, {
           fileName: file.name,
           fileType: file.type,
           fileData: reader.result,
           userId: user.id
         });
-        const res = await axios.get(`http://localhost:5000/api/cases/${id}/documents`);
+        const res = await axios.get(`https://caseroute-backend.onrender.com/api/cases/${id}/documents`);
         setDocuments(res.data);
       } catch (err) {
         alert("Upload failed. Ensure backend limit is 50mb.");
@@ -110,7 +110,7 @@ export default function CaseDetailsPage() {
   const handleDelete = async (docId) => {
     if (!window.confirm("Remove this document?")) return;
     try {
-      await axios.delete(`http://localhost:5000/api/cases/documents/${docId}`);
+      await axios.delete(`https://caseroute-backend.onrender.com/api/cases/documents/${docId}`);
       setDocuments(documents.filter(doc => doc.id !== docId));
     } catch (err) {
       alert("Delete failed.");
