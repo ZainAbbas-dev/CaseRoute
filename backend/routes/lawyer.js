@@ -1,3 +1,7 @@
+const express = require('express');
+const router = express.Router();
+const prisma = require('../db'); // Required to access your database
+
 // PUT: Lawyer Profile
 router.put('/profile/:userId', async (req, res) => {
   try {
@@ -23,6 +27,9 @@ router.put('/profile/:userId', async (req, res) => {
 
     res.json(profile);
   } catch (error) {
+    console.error("Profile update error:", error);
     res.status(500).json({ error: "Failed to update profile" });
   }
 });
+
+module.exports = router; // Required to let index.js use this file
