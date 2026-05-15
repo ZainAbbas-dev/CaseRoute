@@ -1,8 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const prisma = require('../db'); // Required to access your database
+const prisma = require('../db'); // Ensures the database connection is available
 
-// PUT: Lawyer Profile
+// PUT: Update Lawyer Professional Profile
 router.put('/profile/:userId', async (req, res) => {
   try {
     const { userId } = req.params;
@@ -14,7 +14,7 @@ router.put('/profile/:userId', async (req, res) => {
         specialization,
         experience: parseInt(experience),
         location,
-        profileImage, // Save the Base64 string
+        profileImage, // Stores the Base64 image string
       },
       create: {
         userId: parseInt(userId),
@@ -32,4 +32,4 @@ router.put('/profile/:userId', async (req, res) => {
   }
 });
 
-module.exports = router; // Required to let index.js use this file
+module.exports = router; 
