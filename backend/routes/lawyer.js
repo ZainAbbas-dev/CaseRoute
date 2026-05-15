@@ -32,4 +32,16 @@ router.put('/profile/:userId', async (req, res) => {
   }
 });
 
+router.get('/profile/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const profile = await prisma.lawyerProfile.findUnique({
+      where: { userId: parseInt(userId) }
+    });
+    res.json(profile);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch profile" });
+  }
+});
+
 module.exports = router; 
