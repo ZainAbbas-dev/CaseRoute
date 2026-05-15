@@ -2,22 +2,23 @@ const express = require('express');
 const router = express.Router();
 const prisma = require('../db');
 
-// GET: System-wide analytics
 router.get('/stats', async (req, res) => {
   try {
-    const totalUsers = await prisma.user.count();
-    const totalCases = await prisma.case.count();
-    const pendingCases = await prisma.case.count({ where: { status: 'PENDING' } });
-    const assignedCases = await prisma.case.count({ where: { status: 'ASSIGNED' } });
+    // Correctly count real-time data from the database
+    const [totalUsers, totalCases, pendingCount, assignedCount] = await Promise.all([
+      prisma.user.count(),
+      prisma.case.count(),
+      prisma.case.count({ where: { status: 'PENDING' } }),
+      prisma.case.count({ where: { status: 'ASSIGNED' } })
+    ]);
 
-    // Fetch all lawyers with their profile details
     const lawyers = await prisma.user.findMany({
       where: { role: 'LAWYER' },
       include: { lawyerProfile: true }
     });
 
     res.json({
-      stats: { totalUsers, totalCases, pendingCases, assignedCases },
+      stats: { totalUsers, totalCases, pendingCases: pendingCount, assignedCases: assignedCount },
       lawyers
     });
   } catch (error) {
