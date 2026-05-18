@@ -96,7 +96,7 @@ CaseRoute follows a decoupled **Client-Server** architecture optimized for real-
 | **Database** | PostgreSQL, Prisma ORM |
 | **State Management** | Zustand |
 | **Icons** | Lucide-React |
-| **Deployment** | Vercel (Frontend), Render (Backend) |
+| **Deployment** | Vercel (Frontend), Render (Backend) | case-route.vercel.app
 
 ---
 
