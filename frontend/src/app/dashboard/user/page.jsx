@@ -109,7 +109,7 @@ export default function UserDashboard() {
               No Active Cases
             </h2>
             <p className="text-gray-500">
-              You haven't submitted any legal complaints yet.
+              You haven&apos;t submitted any legal complaints yet.
             </p>
           </div>
         ) : (

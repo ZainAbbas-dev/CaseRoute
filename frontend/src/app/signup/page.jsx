@@ -1,6 +1,7 @@
 "use client";
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import useAuthStore from '@/store/useAuthStore';
 
 export default function Signup() {
   const [formData, setFormData] = useState({
@@ -11,6 +12,7 @@ export default function Signup() {
   });
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const { login } = useAuthStore();
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -30,12 +32,12 @@ export default function Signup() {
       const data = await res.json();
 
       if (res.ok) {
-        alert("Registration Successful!");
-        const userRole = formData.role.toUpperCase();
+        login(data.user, data.token);
+        const userRole = data.user.role;
         if (userRole === 'LAWYER') {
-          router.push('/dashboard/lawyer');
+          router.replace('/dashboard/lawyer');
         } else {
-          router.push('/dashboard/user');
+          router.replace('/dashboard/user');
         }
       } else {
         alert(data.error || "Registration failed");

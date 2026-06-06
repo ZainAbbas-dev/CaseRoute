@@ -6,7 +6,7 @@ import useAuthStore from "@/store/useAuthStore";
 import io from "socket.io-client";
 import axios from "axios";
 import moment from "moment";
-import { Send, ArrowLeft, Loader2 } from "lucide-react";
+import { Send, ArrowLeft, Loader2, MessageSquare } from "lucide-react";
 
 // Maintain a single socket instance
 let socket;
