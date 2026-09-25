@@ -25,6 +25,9 @@ model User {
   createdAt     DateTime       @default(now())
   strikes   Int      @default(0)
   isVerified Boolean @default(false)
+
+  resetToken       String?
+  resetTokenExpiry DateTime?
 }
 
 model LawyerProfile {
