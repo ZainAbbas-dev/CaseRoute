@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
-import useAuthStore from "@/store/useAuthStore";
+import useAuthStore from "../../../../store/useAuthStore";
 import io from "socket.io-client";
 import axios from "axios";
 import moment from "moment";

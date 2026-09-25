@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import useAuthStore from "@/store/useAuthStore";
+import useAuthStore from "../../../../store/useAuthStore";
 import axios from "axios";
 import { UserCheck, Save, ArrowLeft, Camera, Loader2 } from "lucide-react";
 

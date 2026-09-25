@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import useAuthStore from "@/store/useAuthStore";
+import useAuthStore from "../../../../../store/useAuthStore";
 import axios from "axios";
 import { 
   File, Upload, Trash2, ArrowLeft, 
