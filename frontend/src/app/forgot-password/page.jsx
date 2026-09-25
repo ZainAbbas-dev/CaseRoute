@@ -23,7 +23,7 @@ export default function ForgotPasswordPage() {
     setLoading(true);
     try {
       // Connects to your backend API
-      // Note: Ensure your backend has this route created to handle the email sending
+      
       await axios.post("https://caseroute-backend.onrender.com/api/auth/forgot-password", {
         email,
       });
