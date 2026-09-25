@@ -4,15 +4,16 @@ const { PrismaPg } = require('@prisma/adapter-pg');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto'); // Added for secure token generation
+const nodemailer = require('nodemailer'); // CRITICAL: Added for sending emails
 
 const router = express.Router();
 
-// 1. Initialize the adapter with your database URL (Restored)
+// 1. Initialize the adapter with your database URL
 const adapter = new PrismaPg({ 
   connectionString: process.env.DATABASE_URL 
 });
 
-// 2. Pass the adapter into the Prisma Client (Restored)
+// 2. Pass the adapter into the Prisma Client
 const prisma = new PrismaClient({ adapter });
 
 // REGISTER ROUTE
@@ -33,12 +34,11 @@ router.post('/register', async (req, res) => {
       },
     });
 
-    // CRITICAL: If the user is a lawyer, create the profile immediately
     if (normalizedRole === 'LAWYER') {
       await prisma.lawyerProfile.create({
         data: {
           userId: user.id,
-          specialization: "General", // Default value to prevent 500 error
+          specialization: "General", 
           experience: 0,
         }
       });
@@ -85,14 +85,12 @@ router.post('/login', async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(401).json({ error: "Invalid credentials" });
 
-    // Generate Token
     const token = jwt.sign(
       { id: user.id, role: user.role }, 
       process.env.JWT_SECRET, 
       { expiresIn: '1d' }
     );
 
-    // EXPLICITLY include the new fields in the response
     res.json({
       token,
       user: {
@@ -100,8 +98,8 @@ router.post('/login', async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
-        isVerified: user.isVerified, // CRITICAL: This enables the frontend check
-        strikes: user.strikes        // Optional: Good for showing warnings
+        isVerified: user.isVerified, 
+        strikes: user.strikes        
       }
     });
   } catch (error) {
@@ -109,17 +107,71 @@ router.post('/login', async (req, res) => {
   }
 });
 
-// RESET PASSWORD ROUTE (Verify Token & Save New Password)
+// FORGOT PASSWORD ROUTE (NEWLY ADDED)
+router.post('/forgot-password', async (req, res) => {
+  const { email } = req.body;
+
+  try {
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) {
+      return res.status(404).json({ error: "User with this email does not exist" });
+    }
+
+    // Generate secure token and set expiry (1 hour)
+    const resetToken = crypto.randomBytes(32).toString("hex");
+    const resetTokenExpiry = new Date(Date.now() + 3600000); 
+
+    // Save token to DB
+    await prisma.user.update({
+      where: { email },
+      data: { resetToken, resetTokenExpiry },
+    });
+
+    // Configure Nodemailer
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+
+    // Create Reset Link using Frontend URL from env variables
+    const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${resetToken}`;
+
+    const mailOptions = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: "Password Reset Request - CaseRoute",
+      html: `
+        <div style="font-family: Arial, sans-serif; text-align: center; padding: 20px;">
+          <h2>CaseRoute Password Reset</h2>
+          <p>You requested to reset your password. Click the button below to set a new password:</p>
+          <a href="${resetLink}" style="background-color: #0f172a; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; display: inline-block; margin: 15px 0;">Reset Password</a>
+          <p style="color: #64748b; font-size: 12px;">If you didn't request this, you can safely ignore this email. The link expires in 1 hour.</p>
+        </div>
+      `,
+    };
+
+    await transporter.sendMail(mailOptions);
+    res.status(200).json({ message: "Password reset link sent to your email" });
+
+  } catch (error) {
+    console.error("Forgot password error:", error);
+    res.status(500).json({ error: "Server error during forgot password" });
+  }
+});
+
+// RESET PASSWORD ROUTE
 router.post('/reset-password', async (req, res) => {
   const { token, newPassword } = req.body;
 
   try {
-    // 1. Find user with this token and check if it's not expired
     const user = await prisma.user.findFirst({
       where: {
         resetToken: token,
         resetTokenExpiry: {
-          gt: new Date(), // Token ki expiry time abhi ke time se zyada honi chahiye
+          gt: new Date(), 
         },
       },
     });
@@ -128,10 +180,8 @@ router.post('/reset-password', async (req, res) => {
       return res.status(400).json({ error: "Invalid or expired reset token. Please request a new link." });
     }
 
-    // 2. Hash the new password
     const hashedPassword = await bcrypt.hash(newPassword, 8);
 
-    // 3. Update password and remove the token from database so it can't be reused
     await prisma.user.update({
       where: { id: user.id },
       data: {
