@@ -127,9 +127,12 @@ router.post('/forgot-password', async (req, res) => {
       data: { resetToken, resetTokenExpiry },
     });
 
-    // Configure Nodemailer
+    // Configure Nodemailer with explicit host and TLS port
     const transporter = nodemailer.createTransport({
-      service: 'gmail',
+      host: 'smtp.gmail.com',
+      port: 587,
+      secure: false, // false for port 587 (uses STARTTLS)
+      requireTLS: true,
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
