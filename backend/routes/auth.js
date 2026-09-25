@@ -3,6 +3,7 @@ const { PrismaClient } = require('@prisma/client');
 const { PrismaPg } = require('@prisma/adapter-pg'); 
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto'); // Added for secure token generation
 
 const router = express.Router();
 
@@ -71,7 +72,6 @@ router.post('/register', async (req, res) => {
 });
 
 // LOGIN ROUTE
-// Inside your login route (POST /api/auth/login)
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
 
@@ -106,6 +106,45 @@ router.post('/login', async (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ error: "Server error" });
+  }
+});
+
+// RESET PASSWORD ROUTE (Verify Token & Save New Password)
+router.post('/reset-password', async (req, res) => {
+  const { token, newPassword } = req.body;
+
+  try {
+    // 1. Find user with this token and check if it's not expired
+    const user = await prisma.user.findFirst({
+      where: {
+        resetToken: token,
+        resetTokenExpiry: {
+          gt: new Date(), // Token ki expiry time abhi ke time se zyada honi chahiye
+        },
+      },
+    });
+
+    if (!user) {
+      return res.status(400).json({ error: "Invalid or expired reset token. Please request a new link." });
+    }
+
+    // 2. Hash the new password
+    const hashedPassword = await bcrypt.hash(newPassword, 8);
+
+    // 3. Update password and remove the token from database so it can't be reused
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        password: hashedPassword,
+        resetToken: null,
+        resetTokenExpiry: null,
+      },
+    });
+
+    res.status(200).json({ message: "Password has been reset successfully!" });
+  } catch (error) {
+    console.error("Reset password error:", error);
+    res.status(500).json({ error: "Server error during password reset" });
   }
 });
 

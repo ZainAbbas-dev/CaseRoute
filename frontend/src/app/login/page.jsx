@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import useAuthStore from "@/store/useAuthStore";
+import useAuthStore from "../../store/useAuthStore";
 import axios from "axios";
 import { Lock, Mail, Loader2, Scale } from "lucide-react";
 import Link from 'next/link';
@@ -16,9 +16,16 @@ export default function LoginPage() {
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    
+    // Professional Email Validation Check
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(email)) {
+      alert("Please enter a valid email address (e.g., ali@example.com).");
+      return;
+    }
+
     setLoading(true);
     try {
-      // Note: Make sure to change this to your API_BASE_URL before pushing to Vercel
       const response = await axios.post("https://caseroute-backend.onrender.com/api/auth/login", {
         email,
         password,
@@ -28,13 +35,11 @@ export default function LoginPage() {
       
       const userRole = response.data.user.role;
 
-      // Explicit role-based redirection
       if (userRole === "ADMIN") {
         router.push("/dashboard/admin");
       } else if (userRole === "LAWYER") {
         router.push("/dashboard/lawyer");
       } else {
-        // Only actual clients (USER role) go here now
         router.push("/dashboard/user");
       }
 
@@ -46,27 +51,27 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
-      <div className="max-w-md w-full bg-white rounded-3xl shadow-xl p-10 border border-slate-100">
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6 font-sans">
+      <div className="max-w-md w-full bg-white rounded-3xl shadow-xl p-10 border border-slate-200">
         
         {/* Branding/Logo */}
         <div className="flex flex-col items-center mb-10">
-          <div className="p-4 bg-blue-600 rounded-2xl text-white mb-4 shadow-lg shadow-blue-200">
+          <div className="p-4 bg-slate-900 rounded-2xl text-white mb-4 shadow-lg">
             <Scale size={32} />
           </div>
-          <h1 className="text-3xl font-black text-slate-800 tracking-tight">CaseRoute</h1>
-          <p className="text-slate-400 text-sm font-medium uppercase tracking-widest mt-1">Legal Marketplace</p>
+          <h1 className="text-3xl font-black text-slate-900 tracking-tight">CaseRoute</h1>
+          <p className="text-slate-500 text-sm font-semibold uppercase tracking-widest mt-1">Legal Marketplace</p>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-6">
           <div className="space-y-2">
-            <label className="text-xs font-black text-slate-500 uppercase ml-1">Email Address</label>
+            <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Email Address</label>
             <div className="relative">
-              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-900" size={18} />
+              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
               <input
                 type="email"
                 required
-                className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 transition-all text-slate-900"
+                className="w-full pl-12 pr-4 py-4 bg-white border border-slate-300 rounded-2xl outline-none focus:ring-2 focus:ring-slate-900 transition-all text-slate-900 placeholder:text-slate-400"
                 placeholder="ali@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -75,17 +80,26 @@ export default function LoginPage() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-black text-slate-500 uppercase ml-1">Password</label>
+            <label className="text-xs font-bold text-slate-500 uppercase tracking-wide ml-1">Password</label>
             <div className="relative">
-              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-900" size={18} />
+              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
               <input
                 type="password"
                 required
-                className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 transition-all text-slate-900"
+                className="w-full pl-12 pr-4 py-4 bg-white border border-slate-300 rounded-2xl outline-none focus:ring-2 focus:ring-slate-900 transition-all text-slate-900 placeholder:text-slate-400"
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
+            </div>
+            {/* NEW FORGOT PASSWORD LINK */}
+            <div className="flex justify-end mt-2">
+              <Link 
+                href="/forgot-password" 
+                className="text-sm font-semibold text-slate-500 hover:text-slate-900 transition-colors"
+              >
+                Forgot Password?
+              </Link>
             </div>
           </div>
 
@@ -99,12 +113,11 @@ export default function LoginPage() {
           </button>
         </form>
 
-        {/* NEW SIGN UP LINK SECTION */}
         <div className="mt-8 text-center text-sm font-medium text-slate-500">
           Don&apos;t have an account?{" "}
           <Link 
             href="/signup" 
-            className="text-blue-600 hover:text-blue-800 font-bold hover:underline transition-all"
+            className="text-slate-900 font-bold hover:underline transition-all"
           >
             Sign Up here
           </Link>
