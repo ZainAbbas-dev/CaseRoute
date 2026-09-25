@@ -31,8 +31,7 @@ export default function ForgotPasswordPage() {
       // We set this to true to show the success screen
       setIsSubmitted(true);
     } catch (error) {
-      // Professional security standard: Always show the success screen even if the email 
-      // isn't in the database to prevent hackers from guessing registered emails.
+      
       setIsSubmitted(true); 
     } finally {
       setLoading(false);
